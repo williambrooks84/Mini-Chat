@@ -1,41 +1,64 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <title>Mini Chat</title>
-  <script src="/socket.io/socket.io.js"></script>
-</head>
-<body>
-  <h2 id="Chat">Mini chat</h2>
-  <ul id="messages"></ul>
-  <form id="form">
-    <input id="input" autocomplete="off">
-    <button>Envoyer</button>
-  </form>
+  <head>
+    <meta charset="UTF-8">
+    <title>Mini Chat</title>
+    <link rel="stylesheet" href="/style.css">
+  </head>
+  <body>
+    <form id="pseudo-form">
+      <input type="text" id="pseudo" placeholder="Entrez votre pseudo" required />
+      <button type="submit">Valider le pseudo</button>
+    </form>
 
-  <script>
-    const socket = io();
+    <h1>Mini Chat</h1>
+    <p style="color: gray">[Version de test v1]</p>
+    <ul id="messages"></ul>
+    <form id="form" action="">
+      <input id="input" autocomplete="off" /><button>Envoyer</button>
+    </form>
 
-    // Demander le pseudo
-    const username = prompt("Entre ton nom d'utilisateur :") || "Anonyme";
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+      let pseudo = '';
 
-    const form = document.getElementById('form');
-    const input = document.getElementById('input');
-    const messages = document.getElementById('messages');
+      const pseudoForm = document.getElementById('pseudo-form');
+      const pseudoInput = document.getElementById('pseudo');
+      const form = document.getElementById('form');
+      const input = document.getElementById('input');
+      const messages = document.getElementById('messages');
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      if (input.value) {
-        socket.emit('chat message', { user: username, text: input.value });
-        input.value = '';
-      }
-    });
+      pseudoForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (pseudoInput.value.trim()) {
+          pseudo = pseudoInput.value.trim();
+          pseudoForm.style.display = 'none';
+          form.style.display = '';
+          input.focus();
+        }
+      });
 
-    socket.on('chat message', function(data) {
-      const li = document.createElement('li');
-      li.textContent = data.user + " : " + data.text;
-      messages.appendChild(li);
-    });
-  </script>
-</body>
+      // Hide chat form until pseudo is set
+      form.style.display = 'none';
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (input.value) {
+          socket.emit('chat message', {
+            pseudo: pseudo,
+            message: input.value
+          });
+          input.value = '';
+        }
+      });
+
+      socket.on('chat message', (data) => {
+        const item = document.createElement('li');
+        item.textContent = `${data.pseudo}: ${data.message}`;
+        messages.appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+    </script>
+  </body>
 </html>
