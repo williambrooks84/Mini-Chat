@@ -1,64 +1,60 @@
-require('dotenv').config();
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const path = require("path");
+import {createServer} from 'http';
+import { PrismaClient } from "./generated/prisma/index.js";
+import { Server } from "socket.io";
+import app from './app.js';
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-const { PrismaClient } = require("./generated/prisma");
+import dotenv from 'dotenv';
+dotenv.config();
+
 const prisma = new PrismaClient();
 
-// Configurer Twig
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "twig");
+const httpServer = createServer(app);
+const io = new Server(httpServer);
 
-// Servir les fichiers statiques (JS, CSS, etc.)
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Servir des fichiers statiques depuis le répertoire 'public'
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Route principale
-app.get("/", (_, res) => {
-  res.render("index");
+//Echo pour tests
+io.on('connection', async (socket) => {
+  socket.on('message', (msg) => {
+    socket.emit('message', msg);
+  });
 });
 
-// Socket.IO
 
-io.on("connection", async (socket) => {
-  console.log("Un utilisateur connecté");
+//Socket IO
+io.on('connection', async (socket) => {
+  console.log('Un utilisateur connecté');
 
-  // Récupérer l'historique des messages et l'envoyer au client
-  try {
-    const messages = await prisma.message.findMany({
-      orderBy: { createdAt: 'asc' }
+  try{
+    const lastMessages = await prisma.message.findMany({
+      orderBy: { createdAt: 'asc' },
+      take: 50,
     });
-    socket.emit("chat history", messages);
+    socket.emit('chat history', lastMessages);
   } catch (error) {
-    console.error("Erreur lors de la récupération des messages:", error);
+    console.error('Erreur lors de la récupération des messages :', error);
   }
-  // Déconnexion de l'utilisateur
-  socket.on("disconnect", () => {
-    console.log("Un utilisateur déconnecté");
-  });
-  socket.on("chat message", async (data) => {
+
+  socket.on('chat message', async (data) => {
     try {
-      // Enregistrer le message dans la base de données
       await prisma.message.create({
         data: {
-          pseudo: data.pseudo || data.username || "Anonyme",
-          content: data.content || data.message || "",
+          pseudo: data.pseudo,
+          content: data.message,
         },
       });
-    } catch (error) {
-      console.error("Erreur lors de l'enregistrement du message:", error);
-    }
-    io.emit("chat message", data);
+    } catch (err) {
+      console.error('Erreur sauvegarde message:', err);
+    } 
+    io.emit('chat message', data);
+  });
+  socket.on('disconnect', () => {
+    console.log('Utilisateur déconnecté');
   });
 });
 
-server.listen(3000, () => {
+//Démarrage serveur
+
+httpServer.listen(3000, () => {
   console.log("Serveur lancé sur http://localhost:3000");
 });
+
+export { httpServer, io };
