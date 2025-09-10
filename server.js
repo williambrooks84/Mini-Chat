@@ -14,6 +14,12 @@ const prisma = new PrismaClient();
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "twig");
 
+// Servir les fichiers statiques (JS, CSS, etc.)
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Servir des fichiers statiques depuis le répertoire 'public'
+app.use(express.static(path.join(__dirname, 'public')));
+
 // Route principale
 app.get("/", (_, res) => {
   res.render("index");

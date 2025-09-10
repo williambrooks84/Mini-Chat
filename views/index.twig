@@ -6,59 +6,27 @@
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
-    <form id="pseudo-form">
-      <input type="text" id="pseudo" placeholder="Entrez votre pseudo" required />
-      <button type="submit">Valider le pseudo</button>
-    </form>
+    <div id="pseudo-container">
+      <input type="text" id="pseudo-input" placeholder="Entrez votre pseudo" required />
+      <button id="pseudo-submit">Valider le pseudo</button>
+    </div>
 
-    <h1>Mini Chat</h1>
-    <p style="color: gray">[Version de test v1]</p>
-    <ul id="messages"></ul>
-    <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Envoyer</button>
-    </form>
+    <div id="chat-container" style="display:none;">
+      <h1>Mini Chat</h1>
+      <p style="color: gray">[Version de test v1]</p>
+      <ul id="messages">
+      {% if messages is defined %}
+        {% for message in messages %}
+        <li><strong>{{ message.pseudo|e }}:</strong> {{ message.content|e }}</li>
+        {% endfor %}
+      {% endif %}
+      </ul>
+      <form id="form" action="">
+      <input id="message" autocomplete="off" /><button>Envoyer</button>
+      </form>
+    </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script>
-      const socket = io();
-      let pseudo = '';
-
-      const pseudoForm = document.getElementById('pseudo-form');
-      const pseudoInput = document.getElementById('pseudo');
-      const form = document.getElementById('form');
-      const input = document.getElementById('input');
-      const messages = document.getElementById('messages');
-
-      pseudoForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (pseudoInput.value.trim()) {
-          pseudo = pseudoInput.value.trim();
-          pseudoForm.style.display = 'none';
-          form.style.display = '';
-          input.focus();
-        }
-      });
-
-      // Hide chat form until pseudo is set
-      form.style.display = 'none';
-
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (input.value) {
-          socket.emit('chat message', {
-            pseudo: pseudo,
-            message: input.value
-          });
-          input.value = '';
-        }
-      });
-
-      socket.on('chat message', (data) => {
-        const item = document.createElement('li');
-        item.textContent = `${data.pseudo}: ${data.message}`;
-        messages.appendChild(item);
-        window.scrollTo(0, document.body.scrollHeight);
-      });
-    </script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/script.js"></script>
   </body>
 </html>
