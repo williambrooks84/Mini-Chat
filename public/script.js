@@ -25,15 +25,17 @@ const logoutForm = document.getElementById('logout-form');
 //   }
 // });
 
-messageForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  if (input.value.trim()) {
-    socket.emit('chat message', {
-      message: input.value
-    });
-    input.value = '';
-  }
-});
+if (messageForm) {
+  messageForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (input.value.trim()) {
+      socket.emit('chat message', {
+        message: input.value
+      });
+      input.value = '';
+    }
+  });
+}
 
 // Déclare les listeners UNE SEULE FOIS ici
 socket.on('chat message', (data) => {
@@ -51,37 +53,41 @@ socket.on('chat history', (msgs) => {
 });
 
 // ...puis dans le login, juste connecte le socket
-loginForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const pseudo = document.getElementById('pseudo').value;
-  const password = document.getElementById('password').value;
+if (loginForm) {
+  loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pseudo = document.getElementById('pseudo').value;
+    const password = document.getElementById('password').value;
 
-  const res = await fetch('/login', {
-    method: 'POST',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ pseudo, password }),
+    const res = await fetch('/login', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pseudo, password }),
+    });
+
+    if (res.ok) {
+      socket.connect();
+
+      document.getElementById('login-container').style.display = 'none';
+      document.getElementById('chat-container').style.display = 'block';
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+    }
   });
+}
 
-  if (res.ok) {
-    socket.connect();
-
-    document.getElementById('login-container').style.display = 'none';
-    document.getElementById('chat-container').style.display = 'block';
-  } else {
-    document.getElementById('login-error').style.display = 'block';
-  }
-});
-
-logoutForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const response = await fetch('/logout', {
-    method: 'POST',
-    credentials: 'include' // important pour les cookies
+if (logoutForm) {
+  logoutForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const response = await fetch('/logout', {
+      method: 'POST',
+      credentials: 'include' // important pour les cookies
+    });
+    if (response.ok) {
+      window.location.href = '/'; // Retour à la page d'accueil
+    } else {
+      alert('Erreur lors de la déconnexion.');
+    }
   });
-  if (response.ok) {
-    window.location.href = '/'; // Retour à la page d'accueil
-  } else {
-    alert('Erreur lors de la déconnexion.');
-  }
-});
+}

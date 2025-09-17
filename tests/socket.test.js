@@ -4,31 +4,26 @@ import { httpServer } from '../server.js'; // adapte le chemin si nécessaire
 
 let clientSocket;
 
-beforeAll(async () => {
-    await new Promise((resolve) => {
-        httpServer.listen(3001, 'localhost', () => {
-            resolve();
-        });
-    });
-}, 30000);
+beforeAll((done) => {
+    httpServer.listen(3000, () => done());
+});
 
-afterAll(async () => {
-    await new Promise((resolve) => httpServer.close(resolve));
-}, 30000);
+afterAll((done) => {
+    if (clientSocket?.connected) clientSocket.disconnect();
+    httpServer.close(() => done());
+});
 
 describe('Test des sockets', () => {
     test('Le serveur renvoie le message envoyé', (done) => {
-        clientSocket = new Client('http://localhost:3001');
+        clientSocket = new Client('http://localhost:3000');
 
         clientSocket.on('connect', () => {
-            clientSocket.on('chat history', (data) => {
-                console.log('Message reçu du serveur:', data);
-                expect(true).toBe(true); // simple check to ensure we received something
-                clientSocket.disconnect();
+            clientSocket.emit('message', 'Bonjour serveur');
+
+            clientSocket.on('message', (data) => {
+                expect(data).toBe('Bonjour serveur');
                 done();
             });
         });
     });
 });
-
-

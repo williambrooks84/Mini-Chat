@@ -21,6 +21,9 @@
     <div id="chat-container" style="display:none;">
       <h1>Mini Chat</h1>
       <p style="color: gray">[Version de test v1]</p>
+      <form id="logout-form">
+        <button type="submit">Déconnexion</button>
+      </form>
       <ul id="messages">
       {% if messages is defined %}
         {% for message in messages %}
