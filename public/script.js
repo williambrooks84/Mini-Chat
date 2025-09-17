@@ -1,24 +1,30 @@
 const socket = io();
 
-const pseudoContainer = document.getElementById('pseudo-container');
+const connexionContainer = document.getElementById('connexion-container');
 const chatContainer = document.getElementById('chat-container');
 const pseudoInput = document.getElementById('pseudo-input');
-const pseudoSubmit = document.getElementById('pseudo-submit');
+const passwordInput = document.getElementById('password-input');
+const connexionSubmit = document.getElementById('connexion-submit');
 const form = document.getElementById('form');
 const input = document.getElementById('message');
 const messages = document.getElementById('messages');
 
 let pseudo = null;
+let password = null;
 
-pseudoSubmit.addEventListener('click', () => {
-  const val = pseudoInput.value.trim();
-  if (val) {
-    pseudo = val;
-    pseudoContainer.style.display = 'none';
-    chatContainer.style.display = 'block';
-    input.focus();
-  }
-});
+if (connexionSubmit) {
+  connexionSubmit.addEventListener('click', () => {
+    const pseudoVal = pseudoInput.value.trim();
+    const passwordVal = passwordInput.value.trim();
+    if (pseudoVal && passwordVal) {
+      pseudo = pseudoVal;
+      password = passwordVal;
+      connexionContainer.style.display = 'none';
+      chatContainer.style.display = 'block';
+      input.focus();
+    }
+  });
+}
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();

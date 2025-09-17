@@ -6,10 +6,11 @@
     <link rel="stylesheet" href="/style.css">
   </head>
   <body>
-    <div id="pseudo-container">
-      <input type="text" id="pseudo-input" placeholder="Entrez votre pseudo" required />
-      <button id="pseudo-submit">Valider le pseudo</button>
-    </div>
+    <form id="connexion-container">
+      <input type="text" id="pseudo-input" name="pseudo" placeholder="Entrez votre pseudo" required />
+      <input type="password" id="password-input" name="password" placeholder="Entrez votre mot de passe" required />
+      <button id="connexion-submit" name="connexion-submit">Valider le pseudo</button>
+    </form>
 
     <div id="chat-container" style="display:none;">
       <h1>Mini Chat</h1>
