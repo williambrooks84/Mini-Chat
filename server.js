@@ -1,6 +1,6 @@
-import {createServer} from 'http';
-import { PrismaClient } from "./generated/prisma/index.js";
-import { Server } from "socket.io";
+import { Server } from 'socket.io';
+import { createServer } from 'http';
+import { PrismaClient } from '@prisma/client';
 import app from './app.js';
 
 import dotenv from 'dotenv';
@@ -11,26 +11,20 @@ const prisma = new PrismaClient();
 const httpServer = createServer(app);
 const io = new Server(httpServer);
 
-//Echo pour tests
-io.on('connection', async (socket) => {
-  socket.on('message', (msg) => {
-    socket.emit('message', msg);
-  });
-});
-
-
-//Socket IO
+// Socket.IO
 io.on('connection', async (socket) => {
   console.log('Un utilisateur connecté');
 
-  try{
+  // Récupérer les derniers messages (par exemple, les 50 plus récents)
+  try {
     const lastMessages = await prisma.message.findMany({
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: 'asc' },  // ou 'desc' puis inverser côté client
       take: 50,
     });
+    // Envoyer l’historique au client connecté
     socket.emit('chat history', lastMessages);
-  } catch (error) {
-    console.error('Erreur lors de la récupération des messages :', error);
+  } catch (err) {
+    console.error('Erreur récupération historique:', err);
   }
 
   socket.on('chat message', async (data) => {
@@ -43,18 +37,13 @@ io.on('connection', async (socket) => {
       });
     } catch (err) {
       console.error('Erreur sauvegarde message:', err);
-    } 
+    }
     io.emit('chat message', data);
   });
+
   socket.on('disconnect', () => {
-    console.log('Utilisateur déconnecté');
+    console.log('Un utilisateur déconnecté');
   });
-});
-
-//Démarrage serveur
-
-httpServer.listen(3000, () => {
-  console.log("Serveur lancé sur http://localhost:3000");
 });
 
 export { httpServer, io };
