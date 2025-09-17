@@ -4,8 +4,9 @@ CREATE TABLE "public"."user" (
     "password" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "id" SERIAL PRIMARY KEY,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 
-    CONSTRAINT "user_pkey" PRIMARY KEY ("pseudo")
 );
 
 -- CreateIndex

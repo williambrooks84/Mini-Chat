@@ -1,46 +1,41 @@
-const socket = io();
+const socket = io({
+  withCredentials: true,
+  autoConnect: false,
+});
 
-const connexionContainer = document.getElementById('connexion-container');
-const chatContainer = document.getElementById('chat-container');
-const pseudoInput = document.getElementById('pseudo-input');
-const passwordInput = document.getElementById('password-input');
-const connexionSubmit = document.getElementById('connexion-submit');
-const form = document.getElementById('form');
+// const pseudoContainer = document.getElementById('pseudo-container');
+// const chatContainer = document.getElementById('chat-container');
+// const pseudoInput = document.getElementById('pseudo-input');
+// const pseudoSubmit = document.getElementById('pseudo-submit');
+const messageForm = document.getElementById('form');
 const input = document.getElementById('message');
 const messages = document.getElementById('messages');
+const loginForm = document.getElementById('login-form');
+const logoutForm = document.getElementById('logout-form');
 
-let pseudo = null;
-let password = null;
+// let pseudo = null;
 
-if (connexionSubmit) {
-  connexionSubmit.addEventListener('click', () => {
-    const pseudoVal = pseudoInput.value.trim();
-    const passwordVal = passwordInput.value.trim();
-    if (pseudoVal && passwordVal) {
-      pseudo = pseudoVal;
-      password = passwordVal;
-      connexionContainer.style.display = 'none';
-      chatContainer.style.display = 'block';
-      input.focus();
-    }
-  });
-}
+// pseudoSubmit.addEventListener('click', () => {
+//   const val = pseudoInput.value.trim();
+//   if (val) {
+//     pseudo = val;
+//     pseudoContainer.style.display = 'none';
+//     chatContainer.style.display = 'block';
+//     input.focus();
+//   }
+// });
 
-form.addEventListener('submit', (e) => {
+messageForm.addEventListener('submit', (e) => {
   e.preventDefault();
-  if (!pseudo) {
-    alert('Veuillez d\'abord entrer un pseudo');
-    return;
-  }
   if (input.value.trim()) {
     socket.emit('chat message', {
-      pseudo,
       message: input.value
     });
     input.value = '';
   }
 });
 
+// Déclare les listeners UNE SEULE FOIS ici
 socket.on('chat message', (data) => {
   const li = document.createElement('li');
   li.textContent = `${data.pseudo} : ${data.message}`;
@@ -48,9 +43,45 @@ socket.on('chat message', (data) => {
 });
 
 socket.on('chat history', (msgs) => {
-    msgs.forEach(data => {
-      const li = document.createElement('li');
-      li.textContent = `${data.pseudo} : ${data.content}`;
-      messages.appendChild(li);
-    });
-  }); 
+  msgs.forEach(data => {
+    const li = document.createElement('li');
+    li.textContent = `${data.pseudo} : ${data.content}`;
+    messages.appendChild(li);
+  });
+});
+
+// ...puis dans le login, juste connecte le socket
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const pseudo = document.getElementById('pseudo').value;
+  const password = document.getElementById('password').value;
+
+  const res = await fetch('/login', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pseudo, password }),
+  });
+
+  if (res.ok) {
+    socket.connect();
+
+    document.getElementById('login-container').style.display = 'none';
+    document.getElementById('chat-container').style.display = 'block';
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+});
+
+logoutForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const response = await fetch('/logout', {
+    method: 'POST',
+    credentials: 'include' // important pour les cookies
+  });
+  if (response.ok) {
+    window.location.href = '/'; // Retour à la page d'accueil
+  } else {
+    alert('Erreur lors de la déconnexion.');
+  }
+});
